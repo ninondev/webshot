@@ -4,6 +4,4 @@ Build with `nice -n 10 make` and test with `nice -n 10 make test` on macOS 14 or
 
 Pull requests are welcome. Keep changes focused and include a way to check them. The maintainer reads issues.
 
-Before a pull request can be merged, post the agreement comment specified in [CLA.md](CLA.md):
-
-> I have read the CLA and I agree to it.
+Contributions are accepted under the MIT License. See [LICENSE](LICENSE).

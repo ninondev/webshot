@@ -58,8 +58,8 @@ The shell runner uses `sips` for dimensions and one-pixel crops. A small Swift I
 
 ## License and contributions
 
-GPL-3.0-only. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
 
-Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CLA.md](CLA.md).
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 If this was useful to you, a star helps other people find it.
