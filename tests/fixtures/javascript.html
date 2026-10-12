@@ -1,0 +1,23 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<!-- Copyright (c) 2026 Ninon -->
+<html lang="en">
+<meta charset="utf-8">
+<title>JavaScript rendering</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { height: 120px; background: #c83232; }
+</style>
+<body>
+<script>
+  setTimeout(() => {
+    const panel = document.createElement('div');
+    panel.style.height = '280px';
+    panel.style.background = '#32965a';
+    document.body.replaceChildren(panel);
+    document.body.style.height = '280px';
+    document.body.dataset.state = 'ready';
+  }, 80);
+</script>
+</body>
+</html>
