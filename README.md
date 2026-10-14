@@ -1,10 +1,10 @@
 # webshot
 
-Turn a local HTML file into a PNG with the WebKit already on your Mac.
+Render a local HTML file to a PNG using the WebKit framework built into macOS.
 
-Unlike Quick Look, it runs the page's JavaScript before it takes the picture. `make test` renders a plain page, a dark-mode page and a page built by JavaScript, then checks the PNG size and sampled pixel colors; 13 checks pass on macOS 27 (Apple silicon), including the timeout and bad-input paths.
+Quick Look skips page JavaScript, whereas `webshot` executes scripts before capturing. `make test` renders a plain page, a dark-mode page, and a JavaScript-generated page, verifying PNG dimensions and sampled pixel colors; all 13 checks pass on macOS 27 (Apple silicon), covering timeout and invalid-input paths.
 
-macOS 14 or later only. Output follows WebKit, so it can differ from Chrome. Fonts are the fonts installed on the Mac, plus fonts the page loads. No browser, Node, window, or screen capture is used.
+Requires macOS 14 or later. Rendering uses WebKit, so output may differ from Chrome. Text renders using system fonts installed on the Mac alongside any fonts loaded by the page. Everything runs without a browser, Node, windows, or screen capture.
 
 ## Build and use
 
@@ -18,7 +18,7 @@ nice -n 10 make
 ./build/webshot page.html out.png --width 1280 --scale 2 --theme light
 ```
 
-The page is laid out at the CSS width and captured to its full height, up to `--max-height`. The output is one sRGB PNG. JavaScript runs on the page. Quick Look does not run page JavaScript; webshot needs no Chrome installation.
+`webshot` lays out the page at the given CSS width, runs its JavaScript, and captures the full height up to `--max-height` as a single sRGB PNG. Quick Look does not execute page JavaScript, and `webshot` requires no Chrome installation.
 
 ## Options
 
@@ -27,26 +27,26 @@ The page is laid out at the CSS width and captured to its full height, up to `--
 | `--width px` | Layout width in CSS pixels | `1280` |
 | `--scale number` | Output pixels per CSS pixel | `2` |
 | `--theme light\|dark` | Appearance, including `prefers-color-scheme` | `light` |
-| `--wait ms` | Extra wait after fonts and images are ready | `0` |
+| `--wait ms` | Additional wait after fonts and images finish loading | `0` |
 | `--max-height px` | Maximum captured height in CSS pixels | `16000` |
-| `--clip x,y,w,h` | Rectangle in CSS pixels, measured from the document's top left | Full page |
-| `--js "expr"` | Evaluate an expression after waiting and print its result | None |
-| `--timeout ms` | Deadline from renderer startup through PNG writing | `15000` |
-| `--help` | Print usage | |
+| `--clip x,y,w,h` | Capture rectangle in CSS pixels from the document's top-left corner | Full page |
+| `--js "expr"` | Evaluate an expression after the wait period and print its result | None |
+| `--timeout ms` | Total time limit from renderer startup to PNG write completion | `15000` |
+| `--help` | Print usage |  |
 
-`--clip` must fit inside the layout width and captured height. Pixel dimensions are the CSS capture dimensions multiplied by scale, rounded to the nearest integer. Output is limited to 64 million pixels, 32768 pixels wide, and 65536 pixels high. Layout width is limited to 16384 CSS pixels, height to 65536, and scale to 16. Wait and timeout are limited to 3600000 ms.
+The `--clip` region must fit within the layout width and captured height. Output pixel dimensions equal the CSS capture dimensions multiplied by `--scale`, rounded to the nearest integer. Output cannot exceed 64 million total pixels, 32768 pixels in width, or 65536 pixels in height. Layout width is capped at 16384 CSS pixels, height at 65536, and scale at 16. Both `--wait` and `--timeout` have a maximum of 3600000 ms.
 
-`--js` runs in the page's JavaScript context. Promises are awaited. Strings print as plain text; other JSON-compatible values print as JSON. `undefined` prints as `undefined`. An exception or a result that cannot be serialized fails the job. DOM changes from the expression are included in the capture.
+`--js` evaluates inside the page's JavaScript context and awaits Promises. Strings print as plain text, `undefined` prints as `undefined`, and other JSON-compatible values print as JSON. Uncaught exceptions or unserializable return values fail the run. Any DOM mutations made by the expression appear in the final PNG.
 
-Status and errors go to stderr; stdout is reserved for `--js` results and help. Exit codes: `0` success, `1` load/render/write failure, `2` invalid arguments or unreadable input, `3` timeout. A printed JavaScript result does not guarantee that the later PNG write succeeded. Check the exit code.
+Status messages and errors go to `stderr`, leaving `stdout` strictly for `--js` output and `--help`. Exit codes: `0` for success, `1` for load, render, or write failure, `2` for invalid arguments or unreadable input, and `3` for timeout. Because a printed JavaScript result does not mean the subsequent PNG write succeeded, always check the exit code.
 
 ## Limits
 
-Local assets must be inside the HTML file's directory or its subdirectories. Linked network resources still depend on the page and its connection. There is no persistent browser profile.
+Local assets must reside inside the HTML file's directory or its subdirectories. External network resources depend on the page and active network availability. Runs use no persistent browser profile.
 
-Fonts and HTML images are awaited; lazy images are asked to load eagerly. A broken HTML image fails the job. Background images, video, WebGL, animations, and work started later by timers have no general readiness signal. Use `--wait` for delayed content. Capture uses WebKit's snapshot API, with no window attached to the view; support in a logged-out session or a restricted sandbox still needs testing.
+`webshot` waits for fonts and HTML images to load, and asks lazy images to load eagerly. Any broken HTML image fails the run. Background images, video, WebGL, animations, and timer-driven tasks provide no standard readiness signal; use `--wait` when capturing delayed content. Captures rely on WebKit's snapshot API with an unattached view, and behavior inside logged-out sessions or restricted sandboxes remains untested.
 
-The viewport grows to the measured document height before capture. Layouts based on viewport height, sticky elements, and fixed elements may change when it grows. This is a document render, not a screen screenshot.
+Before capture, the viewport expands to match the measured document height. Viewport-relative units, sticky elements, and fixed elements may shift when the viewport grows. The output represents a full document render rather than a screen screenshot.
 
 ## Test
 
@@ -54,12 +54,10 @@ The viewport grows to the measured document height before capture. Layouts based
 nice -n 10 make test
 ```
 
-The shell runner uses `sips` for dimensions and one-pixel crops. A small Swift ImageIO helper checks the cropped colors. It also tests clipping, height limits, fractional scale, argument errors, and timeout. Test images and logs are kept in a temporary directory printed by the runner. Set `WEBSHOT_TEST_TMP` to choose that directory's parent.
+The test script uses `sips` to verify image dimensions and crop single pixels, passing them to a small Swift ImageIO helper to check pixel colors. It also covers clipping, height limits, fractional scaling, invalid arguments, and timeouts. Test images and logs stay in a temporary directory printed by the runner; set `WEBSHOT_TEST_TMP` to change its parent directory.
 
 ## License and contributions
 
 MIT. See [LICENSE](LICENSE).
 
 Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-If this was useful to you, a star helps other people find it.
